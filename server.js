@@ -2,6 +2,8 @@
 const express = require('express');
 const app = express();
 const PORT = 3000
+const methodOverride = require("method-override"); // new
+const morgan = require("morgan"); //new
 // Environment Variables 
 // these are variables that might change 
 // based on the given environment 
@@ -28,6 +30,11 @@ db.on("disconnected", () => {console.log("mongo disconnected")})
 const Fruit = require("./models/fruit.js");
 app.use(express.urlencoded({extended: false}))
 
+app.use(methodOverride("_method")); // new
+app.use(morgan("dev")); //new
+
+
+
 // _______________ routes___________
 app.get("/", async (req, res) => {
     res.render("index.ejs")
@@ -51,6 +58,24 @@ app.get("/fruits/:fruitId", async (req,res) => {
     res.render("fruits/show.ejs", {fruit: foundFruit});
 });
 
+app.get("/fruits/:fruitId/edit", async (req,res) => {
+    const foundFruit = await Fruit.findById(req.params.fruitId);
+    res.render("fruits/edit.ejs", {
+    fruit: foundFruit,
+    });
+});
+
+app.put("/fruits/:fruitId", async (req,res) => {
+    if (req.body.isReadyToEat === "on") {
+    req.body.isReadyToEat = true;
+  } else {
+    req.body.isReadyToEat = false;
+  }
+  await Fruit.findByIdAndUpdate(req.params.fruitId, req.body); // Update the fruit in the database
+  res.redirect(`/fruits/${req.params.fruitId}`) // Redirect to the fruit's show page to see the updates
+});
+
+
 app.post("/fruits", async (req, res) => {
     if(req.body.isReadyToEat === "on"){
         req.body.isReadyToEat = true;
@@ -61,6 +86,11 @@ app.post("/fruits", async (req, res) => {
     console.log(req.body);
     res.redirect("/fruits")
 })
+
+app.delete("/fruits/:fruitId", async (req, res) => {
+    await Fruit.findByIdAndDelete(req.params.fruitId);
+    res.redirect("/fruits");
+});
 
 
 // _______________listeners________
