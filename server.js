@@ -33,8 +33,22 @@ app.get("/", async (req, res) => {
     res.render("index.ejs")
 });
 
+
+app.get("/fruits", async (req,res) => {
+    const allFruits =await Fruit.find();
+    console.log(allFruits);
+    res.render("fruits/index.ejs", {fruits: allFruits});
+});
+
+
 app.get("/fruits/new" , (req,res) => {
     res.render("fruits/new.ejs")
+});
+
+
+app.get("/fruits/:fruitId", async (req,res) => {
+    const foundFruit = await Fruit.findById(req.params.fruitId);
+    res.render("fruits/show.ejs", {fruit: foundFruit});
 });
 
 app.post("/fruits", async (req, res) => {
@@ -45,7 +59,7 @@ app.post("/fruits", async (req, res) => {
     }
     await Fruit.create(req.body)
     console.log(req.body);
-    res.redirect("/fruits/new")
+    res.redirect("/fruits")
 })
 
 
